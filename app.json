@@ -27,6 +27,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/with-modular-headers",
       "expo-router",
       [
         "expo-splash-screen",
@@ -38,6 +39,17 @@
         }
       ]
     ],
+
+    "react-native-pod-override": {
+      "overrides": {
+        "GoogleUtilities": {
+          "podspecPath": "node_modules/react-native-firebase/ios/GoogleUtilities.podspec",
+          "settings": {
+            "modular_headers": true
+          }
+        }
+      }
+    },
     "experiments": {
       "typedRoutes": true
     },
