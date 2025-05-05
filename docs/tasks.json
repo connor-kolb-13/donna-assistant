@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Test Task",
+    "status": "in_progress",
+    "notes": "Testing Git commit log",
+    "tags": [
+      "setup",
+      "test",
+      "confirmed",
+      "autotest"
+    ],
+    "lastUpdated": "2025-05-05"
+  }
+]
