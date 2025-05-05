@@ -24,3 +24,6 @@
 
 ## 2025-05-05 16:57:28
 - iterable_item_added: {'title': 'Test archive move', 'status': 'todo', 'notes': '', 'tags': [], 'due': '2025-05-06', 'priority': 'low', 'lastUpdated': '2025-05-05'}
+
+## 2025-05-05 16:57:30
+- iterable_item_removed: {'title': 'Test archive move', 'status': 'todo', 'notes': '', 'tags': [], 'due': '2025-05-06', 'priority': 'low', 'lastUpdated': '2025-05-05'}
