@@ -143,3 +143,25 @@
 - Project linked and ready
 - First iOS build initiated
 - Skipped signing pending Apple access
+## 2025-05-05 — Task & Project Automation Setup
+
+### ✅ Features Implemented
+- Built sync_task.py with support for: create, update, delete, tag, due date, and priority
+- Added automatic changelog tracking via log_update.py using DeepDiff
+- Set up Git auto-commits for every task change and summary update
+- Created weekly_summary.py and generate_dashboard.py for snapshot views
+- Archived completed tasks to rchive.json automatically
+- Cleaned and finalized README.md with dashboard link integration
+
+### 🗃️ Files Touched
+- scripts/sync_task.py
+- scripts/log_update.py
+- scripts/weekly_summary.py
+- scripts/generate_dashboard.py
+- docs/tasks.json, rchive.json, changelog.md, weekly_summary.md, 	ask_dashboard.md
+- README.md
+
+### 🔁 Git Automation
+- All scripts commit changes directly to Git with clear, timestamped messages
+- Weekly and real-time summaries are fully auto-committed
+

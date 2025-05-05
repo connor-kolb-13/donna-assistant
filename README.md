@@ -1,6 +1,6 @@
-# Donna Assistant 🤖
+﻿# Donna Assistant 🧠
 
-An AI-powered mobile assistant inspiried by _Donna_ from Suits.  
+An AI-powered mobile assistant inspired by _Donna_ from Suits.  
 Handles scheduling, decisions, reminders, and personal support in a confident and intelligent way.
 
 ## 🌐 Domain
@@ -14,15 +14,16 @@ Handles scheduling, decisions, reminders, and personal support in a confident an
 - GPT-4 (via n8n Webhook)
 - EAS Build System
 
-## 🔧 Project Status
+## 🛠️ Project Status
 
 Actively in early-stage development. Test builds launching soon.
 
-## 🛠 Local Setup
+[📊 View Task Dashboard](docs/task_dashboard.md)
+
+## 🧰 Local Setup
 
 ```bash
 git clone https://github.com/your-username/donna-assistant.git
 cd donna-assistant
 npm install
 npx expo start
-```
