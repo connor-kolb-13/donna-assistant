@@ -10,5 +10,14 @@
       "autotest"
     ],
     "lastUpdated": "2025-05-05"
+  },
+  {
+    "title": "Test due + priority",
+    "status": "todo",
+    "notes": "Validate new fields",
+    "tags": [],
+    "due": "2025-05-10",
+    "priority": "high",
+    "lastUpdated": "2025-05-05"
   }
 ]

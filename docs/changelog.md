@@ -18,3 +18,6 @@
 
 ## 2025-05-05 16:52:36
 - iterable_item_removed: {'title': 'Build sync_task.py features', 'status': 'todo', 'notes': 'Add create, delete, list', 'tags': ['cli'], 'lastUpdated': '2025-05-05'}
+
+## 2025-05-05 16:55:57
+- iterable_item_added: {'title': 'Test due + priority', 'status': 'todo', 'notes': 'Validate new fields', 'tags': [], 'due': '2025-05-10', 'priority': 'high', 'lastUpdated': '2025-05-05'}
