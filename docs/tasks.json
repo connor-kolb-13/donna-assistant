@@ -10,5 +10,14 @@
       "autotest"
     ],
     "lastUpdated": "2025-05-05"
+  },
+  {
+    "title": "Build sync_task.py features",
+    "status": "todo",
+    "notes": "Add create, delete, list",
+    "tags": [
+      "cli"
+    ],
+    "lastUpdated": "2025-05-05"
   }
 ]
