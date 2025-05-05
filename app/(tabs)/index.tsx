@@ -23,7 +23,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig";
-import DonnaAvatar from "@/assets/images/DonnaAssistantAnime.png";
+import DonnaAvatar from "@/assets/images/DonnaAssistantAnimeLarge.png";
 import { LoginForm } from "@/components/LoginForm";
 
 interface ChatMessage {
