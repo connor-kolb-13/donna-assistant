@@ -21,3 +21,6 @@
 
 ## 2025-05-05 16:55:57
 - iterable_item_added: {'title': 'Test due + priority', 'status': 'todo', 'notes': 'Validate new fields', 'tags': [], 'due': '2025-05-10', 'priority': 'high', 'lastUpdated': '2025-05-05'}
+
+## 2025-05-05 16:57:28
+- iterable_item_added: {'title': 'Test archive move', 'status': 'todo', 'notes': '', 'tags': [], 'due': '2025-05-06', 'priority': 'low', 'lastUpdated': '2025-05-05'}
