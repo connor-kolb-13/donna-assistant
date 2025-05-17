@@ -1,6 +1,6 @@
 # Donna Task Dashboard
 
-_Last updated: 2025-05-05 19:07:44_
+_Last updated: 2025-05-16 20:32:43_
 
 ## Active Task Counts
 - In_Progress: 1
@@ -9,7 +9,7 @@ _Last updated: 2025-05-05 19:07:44_
 - Archived Tasks: 1
 
 ## Tasks Due Soon (next 3 days)
-- No tasks due soon
+- Test due + priority (Due: 2025-05-10, Priority: high)
 
 ## Completed in Last 7 Days
-- Test archive move (Completed: 2025-05-05)
+- No recent completions
