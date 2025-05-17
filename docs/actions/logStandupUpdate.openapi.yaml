@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info:
+  title: DAA Project Log API
+  version: 1.0.1
+  description: API for appending structured standup updates to the shared DAA_ProjectLog.md
+
+servers:
+  - url: https://<YOUR-RENDER-URL-HERE>
+    description: Hosted log API for GPT assistants
+
+paths:
+  /log/standup:
+    post:
+      operationId: logStandupUpdate
+      summary: Append a structured standup entry to the shared DAA project log.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - assistant
+                - completed
+                - next
+                - blockers
+              properties:
+                assistant:
+                  type: string
+                  description: Name of the assistant submitting the update
+                  example: ScrumDonna
+                completed:
+                  type: string
+                  description: What was completed
+                next:
+                  type: string
+                  description: What’s being worked on next
+                blockers:
+                  type: string
+                  description: Any current blockers
+      responses:
+        '200':
+          description: Markdown block that was appended to the log
+          content:
+            text/markdown:
+              schema:
+                type: string
