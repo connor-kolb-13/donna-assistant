@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: donna-log-api
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: api/log-server
