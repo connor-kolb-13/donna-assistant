@@ -1,0 +1,8 @@
+html,
+body {
+  @apply bg-white text-black dark:bg-gray-900 dark:text-white transition-colors duration-300;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
