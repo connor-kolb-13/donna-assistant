@@ -34,3 +34,40 @@ _Used for tracking sprint progress, system changes, agent status, blockers, and 
 - For file reference consistency: `usersFullTemplate.json`, `Complete User Story Document.pdf`, and `Donna_Brand_Style_Guide.docx` are considered canonical
 - UINikki now produces React/Tailwind UI components, not SwiftUI — all layout assumptions must reflect this
 - CopyGenie handles web copywriting, CTA phrasing, plan descriptions, and demo language across marketing site and assistant output
+
+---
+
+## ✅ Project Log Update – June 3 2025
+
+### 🧱 Frontend Framework Progress
+- **Core structure completed** for primary screens: `Landing`, `Waitlist`, `Explore`, `Sign-Up`, and `Login`.
+- **Landing page** is implemented with base styling and structure; refinement planned for full brand polish.
+
+### 🎨 Theming & Animations
+- **Light/Dark theme support enabled** via Tailwind `dark:` classes.
+- **Route-level animations active** using **Framer Motion** with smooth transitions between views.
+- Theme switching and page transitions are stable with no layout flash.
+
+### 🧭 Routing & Layout
+- **Navigation architecture established** with header/footer consistency and clean route logic.
+- All route views wrapped in `<motion.div>` for animated mount/unmount behavior.
+
+### 🔐 Authentication Flow
+- **UI for Sign-Up/Login is complete** and includes real-time form validation.
+- **Firebase Auth backend not yet connected** — pending secure integration and token persistence.
+- User stories **US-01** and **US-02** have front-end components finished and are ready for auth linking.
+
+### 🔜 Next Steps
+- Integrate Firebase Auth with backend for sign-up/login/reset flows.
+- Enhance **landing page visual design** to match Donna’s assistant personality.
+- Begin connecting memory, calendar, and list features based on user stories:
+  - `US-15` Auto-log reminders/facts
+  - `US-18` Natural language event creation
+  - `US-26` Custom list creation
+
+### 🧩 Infrastructure Alignment
+- Current frontend status aligns with **MVP Phase 2: iOS App MVP**.
+- Component structure cleanly matches Firestore schema and expected n8n flow integration.
+
+_Logged by UINikki – June 3 2025_
+---
