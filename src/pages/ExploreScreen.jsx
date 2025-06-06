@@ -1,6 +1,5 @@
 // src/pages/ExploreScreen.jsx
 import React, { useState } from "react";
-import Navbar from "../components/Navbar";
 import {
   FaCalendarAlt,
   FaEnvelope,
@@ -121,7 +120,8 @@ const CATEGORIES = [
   {
     key: "reminders",
     name: "Tasks & Reminders",
-    description: "Set gentle nudges or recurring habits with natural phrasing.",
+    description:
+      "Set gentle nudges or recurring reminders with natural phrasing.",
     icon: <FaTasks size={32} className="text-rose-500" />,
     integrations: ["Google Tasks", "iOS Reminders"],
     prompts: [
@@ -233,15 +233,14 @@ export default function ExploreScreen() {
 
   return (
     <>
-      <Navbar />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="bg-white dark:bg-gray-900 min-h-screen"
+        className="bg-background dark:bg-background-dark min-h-screen"
       >
-        <section className="bg-white dark:bg-gray-900 min-h-screen px-6 py-16 text-center transition-colors">
+        <section className="px-6 py-16 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-rose-500 mb-6">
             Explore Donna
           </h1>
@@ -262,7 +261,7 @@ export default function ExploreScreen() {
                   selected.key === cat.key
                     ? "border-rose-500"
                     : "border-gray-200 dark:border-gray-700"
-                } bg-white dark:bg-gray-800`}
+                } bg-card dark:bg-card-dark`}
               >
                 <div className="flex items-center gap-4">
                   <div>{cat.icon}</div>
@@ -281,7 +280,7 @@ export default function ExploreScreen() {
 
           <motion.div
             layout
-            className="max-w-4xl mx-auto text-left mb-10 bg-white dark:bg-gray-900"
+            className="max-w-4xl mx-auto text-left mb-10 card-surface"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -297,7 +296,7 @@ export default function ExploreScreen() {
               {selected.integrations?.map((name, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-1 text-sm text-gray-800 dark:text-gray-200"
+                  className="rounded-xl border border-gray-300 dark:border-gray-600 px-5 py-4 bg-input dark:bg-input-dark text-gray-900 dark:text-gray-100 shadow-sm transition-colors flex items-center gap-2"
                 >
                   {INTEGRATION_ICONS[name] || null}
                   <span>{name}</span>
@@ -310,7 +309,7 @@ export default function ExploreScreen() {
                 <motion.button
                   key={i}
                   onClick={() => handlePrompt(ex)}
-                  className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 text-left hover:shadow-md transition"
+                  className="input-field text-left hover:shadow-md"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -320,7 +319,7 @@ export default function ExploreScreen() {
             </div>
           </motion.div>
 
-          <div className="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-inner p-4 space-y-4">
+          <div className="max-w-2xl mx-auto card-surface space-y-4">
             {messages.length === 0 ? (
               <p className="text-center text-gray-400 py-12 dark:text-gray-500">
                 Try a prompt above to preview how Donna responds.
@@ -361,7 +360,7 @@ export default function ExploreScreen() {
             </p>
             <button
               onClick={() => (window.location.href = "/waitlist")}
-              className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-3 rounded-xl shadow"
+              className="button-primary"
             >
               Join the Waitlist
             </button>

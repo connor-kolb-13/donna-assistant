@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
-import Navbar from "../components/Navbar";
-import { FaPaperPlane } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaPaperPlane } from "react-icons/fa";
 
 const DonnaAvatar = "/assets/images/DonnaCircleColored.png";
 const REFERRAL_OPTIONS = [
@@ -77,7 +76,6 @@ export default function WaitlistScreen() {
           role: "donna",
           content: `Nice to meet you, ${input}! And your last name?`,
         };
-
       case "last":
         setForm((f) => ({ ...f, last: input }));
         setStep("email");
@@ -85,7 +83,6 @@ export default function WaitlistScreen() {
           role: "donna",
           content: "Thanks! What's the best email to reach you at?",
         };
-
       case "email": {
         const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
         if (!valid) {
@@ -104,8 +101,34 @@ export default function WaitlistScreen() {
           options: REFERRAL_OPTIONS,
         };
       }
-
       case "source":
+        // If they tapped "Other", ask for clarification instead of submitting
+        if (input === "Other") {
+          setStep("source-custom");
+          return {
+            role: "donna",
+            content: "Got it — what should I note as your referral source?",
+          };
+        }
+
+        // Otherwise continue as before
+        setForm((f) => ({ ...f, source: input }));
+        setOptionsDisabled(true);
+        setStep("done");
+        try {
+          await setDoc(doc(db, "waitlist", form.email.toLowerCase()), {
+            ...form,
+            source: input,
+          });
+        } catch (err) {
+          console.error("Firestore error:", err);
+        }
+        return {
+          role: "donna",
+          content: `You're officially on the waitlist, ${form.first}! 🎉 I'll be in touch soon.`,
+        };
+
+      case "source-custom":
         setForm((f) => ({ ...f, source: input }));
         setOptionsDisabled(true);
         setStep("done");
@@ -135,24 +158,23 @@ export default function WaitlistScreen() {
 
     setTimeout(async () => {
       const reply = await getDonnaReply(option);
-      setSteps((s) => [...s.filter((m) => !m.typing), reply]);
+      setSteps((s) => [...s.filter((m) => !m.typing), reply]); // Remove typing first
       setLoading(false);
-    }, 1000);
+    }, 500); // Reduced from 1000ms to tighten UI
   };
 
   return (
     <>
-      <Navbar />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="bg-white dark:bg-gray-900 min-h-screen"
+        className="bg-background dark:bg-background-dark min-h-screen"
       >
         <section
           ref={containerRef}
-          className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-start px-4 pt-20 pb-12 overflow-y-auto transition-colors"
+          className="min-h-screen flex flex-col items-center justify-start px-4 pt-20 pb-12 overflow-y-auto"
         >
           <h1 className="text-3xl sm:text-4xl font-bold text-rose-500 mb-6">
             Join Donna's Waitlist
@@ -161,7 +183,7 @@ export default function WaitlistScreen() {
             Be the first to know when Donna is available for use in your region.
           </p>
 
-          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-xl shadow p-6 space-y-4 transition-colors">
+          <div className="card-surface w-full max-w-md space-y-4">
             <AnimatePresence initial={false}>
               {steps.map((msg, i) => (
                 <motion.div
@@ -184,8 +206,8 @@ export default function WaitlistScreen() {
                   <div
                     className={`px-4 py-3 rounded-xl max-w-[85%] text-sm whitespace-pre-line shadow ${
                       msg.role === "user"
-                        ? "bg-blue-100 text-gray-900"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                        ? "bg-blue-100 text-gray-900 dark:bg-blue-800 dark:text-white ml-auto"
+                        : "bg-input dark:bg-input-dark text-gray-800 dark:text-gray-100 mr-auto"
                     }`}
                   >
                     {msg.typing ? <TypingDots /> : msg.content}
@@ -200,7 +222,7 @@ export default function WaitlistScreen() {
                   <motion.button
                     key={i}
                     onClick={() => handleQuickOption(opt)}
-                    className="bg-gray-100 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-3 py-2 text-sm text-left hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                    className="input-field text-sm text-left"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -220,7 +242,7 @@ export default function WaitlistScreen() {
               >
                 <input
                   type="text"
-                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  className="input-field flex-1"
                   placeholder="Type your response..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -229,7 +251,7 @@ export default function WaitlistScreen() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600 transition flex items-center gap-2"
+                  className="bg-rose-500 hover:bg-rose-600 text-white p-3 rounded-xl transition-colors"
                 >
                   <FaPaperPlane />
                 </button>

@@ -1,41 +1,55 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import { motion } from "framer-motion";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // 🔐 Firebase or custom auth here
-    console.log("Login data:", form);
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
+      const user = userCredential.user;
+      await updateDoc(doc(db, "users", user.uid), {
+        lastLogin: serverTimestamp(),
+      });
+      navigate("/dashboard");
+    } catch {
+      setError("Invalid email or password. Please try again.");
+    }
   };
 
   return (
     <>
-      <Navbar />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="bg-white dark:bg-gray-900 min-h-screen"
+        className="bg-background dark:bg-background-dark min-h-screen py-20 px-6 transition-colors"
       >
-        <section className="min-h-screen flex items-center justify-center px-6 py-20 bg-white dark:bg-gray-900 text-center transition-colors">
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 transition-colors">
+        <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-20 text-center">
+          <div className="card-surface w-full max-w-md">
             <img
               src="/assets/images/DonnaCircleColored.png"
               alt="Donna"
               className="w-20 h-20 mx-auto rounded-full mb-6"
             />
-
             <h2 className="text-2xl font-bold text-rose-500 mb-1">
               Welcome Back
             </h2>
@@ -51,7 +65,7 @@ export default function LoginScreen() {
                 onChange={handleChange}
                 placeholder="Email"
                 required
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                className="input-field"
               />
               <input
                 type="password"
@@ -60,16 +74,20 @@ export default function LoginScreen() {
                 onChange={handleChange}
                 placeholder="Password"
                 required
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                className="input-field"
               />
-
-              <button
-                type="submit"
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-3 rounded-xl transition"
-              >
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              <button type="submit" className="button-primary w-full">
                 Log In
               </button>
             </form>
+
+            <button
+              onClick={() => navigate("/forgot-password")}
+              className="text-sm text-rose-500 hover:underline mt-3 font-medium"
+            >
+              Forgot your password?
+            </button>
 
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-4">
               Don’t have an account?{" "}

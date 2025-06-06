@@ -1,8 +1,9 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
-// TODO: Replace this with your actual config object from Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyCuwE9DKC6d92hgNB-A3fHPrZk7wndZTx8",
   authDomain: "donna-assistant-b9ce3.firebaseapp.com",
@@ -13,3 +14,5 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app);

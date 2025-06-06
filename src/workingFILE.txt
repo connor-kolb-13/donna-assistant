@@ -1,0 +1,528 @@
+// MemoryAndDataSettings.jsx — Final Refined Version
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { auth, db } from "../../firebase";
+import SuccessBanner from "../../components/SuccessBanner";
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+} from "firebase/firestore";
+import {
+  FaSpinner,
+  FaTrash,
+  FaDownload,
+  FaPlus,
+  FaEdit,
+  FaTimes,
+  FaSearch,
+} from "react-icons/fa";
+
+const DEFAULT_PREFS = {
+  autoLogCalls: true,
+  autoLogTasks: true,
+  personalizationLevel: "high",
+  defaultGptModel: "gpt-4",
+  defaultReminderOffsetMin: 15,
+};
+
+const CATEGORIES = [
+  "career",
+  "finance",
+  "travel",
+  "project",
+  "personal",
+  "other",
+];
+const SORT_OPTIONS = ["Newest", "Oldest", "A-Z", "Z-A"];
+
+export default function MemoryAndDataSettings() {
+  const [user, setUser] = useState(null);
+  const [prefs, setPrefs] = useState(null);
+  const [memory, setMemory] = useState([]);
+  const [filteredMemory, setFilteredMemory] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("Newest");
+  const [editingMemory, setEditingMemory] = useState(null);
+  const [deletingMemory, setDeletingMemory] = useState(null);
+  const [formState, setFormState] = useState({
+    title: "",
+    category: "career",
+    content: "",
+  });
+  const [error, setError] = useState("");
+  const [savePending, setSavePending] = useState(false);
+  const [savingMemory, setSavingMemory] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (u) => {
+      if (u) {
+        setUser(u);
+        await loadPrefs(u.uid);
+        await loadMemory(u.uid);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...memory];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (m) =>
+          m.title.toLowerCase().includes(q) ||
+          (m.tags || []).some((tag) => tag.toLowerCase().includes(q))
+      );
+    }
+    switch (sortOption) {
+      case "Newest":
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case "Oldest":
+        filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        break;
+      case "A-Z":
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "Z-A":
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+    }
+    setFilteredMemory(filtered);
+  }, [memory, searchQuery, sortOption]);
+
+  const loadPrefs = async (uid) => {
+    const ref = doc(db, "users", uid, "accountPreferences", "default");
+    const snap = await getDoc(ref);
+    snap.exists()
+      ? setPrefs({ ...DEFAULT_PREFS, ...snap.data() })
+      : (await setDoc(ref, DEFAULT_PREFS), setPrefs(DEFAULT_PREFS));
+  };
+
+  const loadMemory = async (uid) => {
+    const snapshot = await getDocs(collection(db, "users", uid, "memory"));
+    const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    setMemory(items);
+  };
+
+  const updatePref = (key, val) => setPrefs((p) => ({ ...p, [key]: val }));
+
+  const savePrefs = async () => {
+    if (!user?.uid || !prefs) return;
+    setSavePending(true);
+    await updateDoc(
+      doc(db, "users", user.uid, "accountPreferences", "default"),
+      prefs
+    );
+    setSavePending(false);
+    setUpdateSuccess(true);
+    setTimeout(() => setUpdateSuccess(false), 3000);
+  };
+
+  const confirmDeleteMemory = async () => {
+    await deleteDoc(doc(db, "users", user.uid, "memory", deletingMemory.id));
+    setMemory((mem) => mem.filter((m) => m.id !== deletingMemory.id));
+    setDeletingMemory(null);
+  };
+
+  const exportMemory = () => {
+    const blob = new Blob([JSON.stringify(memory, null, 2)], {
+      type: "application/json",
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "donna_memory_export.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const saveMemoryItem = async () => {
+    setSavingMemory(true);
+    setError("");
+    if (!formState.title.trim() || !formState.content.trim()) {
+      setError("Title and content are required.");
+      return;
+    }
+
+    const data = {
+      ...formState,
+      createdAt: new Date().toISOString(),
+      source: "user",
+      tags: [formState.category],
+      syncedToNotion: false,
+      linkedEntityId: null,
+    };
+
+    const colRef = collection(db, "users", user.uid, "memory");
+    editingMemory?.id
+      ? await updateDoc(doc(colRef, editingMemory.id), data)
+      : await addDoc(colRef, data);
+
+    setFormState({ title: "", category: "career", content: "" });
+    setEditingMemory(null);
+    await loadMemory(user.uid);
+    setSavingMemory(false);
+  };
+
+  if (!prefs) return <div className="p-6">Loading...</div>;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="p-6 bg-background dark:bg-background-dark min-h-[85vh]"
+    >
+      <AnimatePresence>
+        {updateSuccess && (
+          <SuccessBanner message="✅ Memory preferences saved successfully." />
+        )}
+      </AnimatePresence>
+      <h2 className="text-xl font-bold mb-1">🧠 Memory & Data Settings</h2>
+      <p className="text-sm text-muted-foreground mb-6">
+        Review and update how Donna stores and uses information to help you.
+      </p>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="card-surface">
+          <h3 className="text-lg font-semibold mb-3">Memory Controls</h3>
+          <Toggle
+            label="Auto-log Calls"
+            value={prefs.autoLogCalls}
+            onChange={(v) => updatePref("autoLogCalls", v)}
+          />
+          <Toggle
+            label="Auto-log Tasks"
+            value={prefs.autoLogTasks}
+            onChange={(v) => updatePref("autoLogTasks", v)}
+          />
+          <SelectField
+            label="Personalization Level"
+            value={prefs.personalizationLevel}
+            onChange={(v) => updatePref("personalizationLevel", v)}
+            options={["low", "medium", "high"]}
+          />
+          <SelectField
+            label="Default Model"
+            value={prefs.defaultGptModel}
+            onChange={(v) => updatePref("defaultGptModel", v)}
+            options={["gpt-3.5", "gpt-4"]}
+          />
+          <InputField
+            label="Reminder Offset (min)"
+            value={prefs.defaultReminderOffsetMin}
+            onChange={(v) =>
+              updatePref("defaultReminderOffsetMin", parseInt(v))
+            }
+          />
+        </div>
+
+        <div className="card-surface relative">
+          <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center gap-1 text-lg font-semibold">
+              Recent Memories
+              <div className="relative group flex items-center">
+                <span className="text-blue-400 cursor-pointer text-base leading-none">
+                  ❓
+                </span>
+
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[300px] bg-background dark:bg-background-dark text-sm text-muted-foreground p-3 rounded-lg shadow-md border border-border dark:border-border-dark opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                  <strong className="block mb-1 text-white dark:text-white">
+                    What are Memories?
+                  </strong>
+                  Memories help Donna remember details you’ve shared — like
+                  travel plans, preferences, key facts, or things you’ve asked
+                  her to keep in mind. <br />
+                  <br />
+                  When you add or update a memory here, it becomes part of
+                  Donna’s personalized context. She uses it to respond smarter
+                  in chats, suggest/complete actions, and remind you at just the
+                  right moment.
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setEditingMemory({})}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs flex items-center gap-2"
+            >
+              <FaPlus /> Add
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 mb-4">
+            <div className="relative w-full">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+
+              <input
+                type="text"
+                placeholder="Search memories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input-field pl-9"
+              />
+            </div>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="input-field max-w-[130px]"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
+          {filteredMemory.length === 0 ? (
+            <div className="text-sm text-muted-foreground text-center py-12 flex flex-col items-center gap-3">
+              <div className="text-5xl opacity-30">🤔</div>
+              <p className="text-sm">You haven’t added any memories yet.</p>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                Donna can remember helpful things for you — try adding a travel
+                plan, a key fact, or an important date.
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border dark:divide-border-dark">
+              {filteredMemory.map((item) => (
+                <li
+                  key={item.id}
+                  className="bg-muted py-3 px-4 flex justify-between items-start gap-4"
+                >
+                  <div>
+                    <p className="text-sm font-semibold">{item.title}</p>
+                    {item.tags && (
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {item.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 text-xs text-muted-foreground truncate px-2 pt-[2px]">
+                    {item.content}
+                  </div>
+                  <div className="flex flex-col items-end gap-1 min-w-fit">
+                    <button
+                      onClick={() => {
+                        setFormState({
+                          title: item.title || "",
+                          category: item.category || "",
+                          content: item.content || "",
+                        });
+                        setEditingMemory(item);
+                      }}
+                      className="text-yellow-400 hover:underline text-xs"
+                    >
+                      <FaEdit className="inline mr-1" /> Edit
+                    </button>
+                    <button
+                      onClick={() => setDeletingMemory(item)}
+                      className="text-red-500 hover:underline text-xs"
+                    >
+                      <FaTrash className="inline mr-1" /> Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {memory.length > 0 && (
+            <button
+              onClick={exportMemory}
+              className="mt-4 text-sm text-blue-500 hover:underline flex items-center gap-2"
+            >
+              <FaDownload /> Export All
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Add/Edit Modal */}
+      <AnimatePresence>
+        {editingMemory !== null && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50"
+            onClick={() => {
+              setEditingMemory(null);
+              setFormState({ title: "", category: "career", content: "" });
+            }}
+          >
+            <div
+              className="card-surface w-full max-w-md p-6 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => {
+                  setEditingMemory(null);
+                  setFormState({ title: "", category: "career", content: "" });
+                }}
+                className="absolute top-2 right-2 text-gray-400 hover:text-white"
+              >
+                <FaTimes />
+              </button>
+              <h3 className="text-lg font-semibold mb-4">
+                {editingMemory?.id ? "Edit Memory" : "Add New Memory"}
+              </h3>
+              {error && <p className="text-red-400 text-sm mb-2">{error}</p>}
+              <InputField
+                label="Title"
+                value={formState.title}
+                onChange={(v) => setFormState((s) => ({ ...s, title: v }))}
+              />
+              <SelectField
+                label="Category"
+                value={formState.category}
+                onChange={(v) => setFormState((s) => ({ ...s, category: v }))}
+                options={CATEGORIES}
+              />
+              <textarea
+                className="input-field min-h-[100px] mt-3"
+                placeholder="Memory content..."
+                value={formState.content}
+                onChange={(e) =>
+                  setFormState((s) => ({ ...s, content: e.target.value }))
+                }
+              />
+              <button
+                className={`button-primary flex items-center gap-2 ${
+                  savingMemory ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={saveMemoryItem}
+                disabled={savingMemory}
+              >
+                {savingMemory ? <FaSpinner className="animate-spin" /> : null}
+                Save Memory
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {deletingMemory && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50"
+            onClick={() => setDeletingMemory(null)}
+          >
+            <div
+              className="card-surface w-full max-w-sm p-6 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setDeletingMemory(null)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-white"
+              >
+                <FaTimes />
+              </button>
+              <h3 className="text-lg font-semibold mb-2">Delete Memory?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Are you sure you want to permanently delete
+                <span className="font-semibold"> “{deletingMemory.title}”</span>
+                ?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDeletingMemory(null)}
+                  className="text-sm px-4 py-2 rounded-md border border-gray-500 text-white hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteMemory}
+                  className="text-sm px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex justify-center mt-10">
+        <button
+          className={`button-primary flex items-center gap-2 ${
+            savePending ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          onClick={savePrefs}
+          disabled={savePending}
+        >
+          {savePending ? <FaSpinner className="animate-spin" /> : null}
+          Save Changes
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+function Toggle({ label, value, onChange }) {
+  return (
+    <div className="flex items-center justify-between mt-2">
+      <span className="text-sm text-gray-100">{label}</span>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          checked={!!value}
+          onChange={(e) => onChange(e.target.checked)}
+          className="sr-only peer"
+        />
+        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 dark:peer-focus:ring-blue-300 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"></div>
+      </label>
+    </div>
+  );
+}
+
+function InputField({ label, value, onChange }) {
+  return (
+    <div>
+      <label className="text-sm font-medium">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="input-field mt-1"
+      />
+    </div>
+  );
+}
+
+function SelectField({ label, value, onChange, options }) {
+  return (
+    <div className="mt-4">
+      <label className="text-sm font-medium">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="input-field mt-1"
+      >
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt.charAt(0).toUpperCase() + opt.slice(1)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
